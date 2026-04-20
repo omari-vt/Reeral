@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "./supabase"
+import dynamic from "next/dynamic"
+
+const Carte = dynamic(() => import("./Carte"), { ssr: false })
 
 export default function Home() {
   const [annonces, setAnnonces] = useState<any[]>([])
@@ -11,6 +14,7 @@ export default function Home() {
   const [lieu, setLieu] = useState("")
   const [description, setDescription] = useState("")
   const [utilisateur, setUtilisateur] = useState<any>(null)
+  const [vueActive, setVueActive] = useState<"liste" | "carte">("liste")
 
   useEffect(() => {
     chargerAnnonces()
@@ -127,26 +131,43 @@ export default function Home() {
       )}
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <h3 className="text-sm font-medium text-gray-500 uppercase mb-4">
-          {annonces.length} annonces recentes
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {annonces.length === 0 ? (
-            <p className="text-gray-400 text-sm col-span-2 text-center py-8">
-              Aucune annonce pour l instant. Soyez le premier a signaler !
-            </p>
-          ) : (
-            annonces.map((annonce) => (
-              <div key={annonce.id} className="bg-white border border-gray-200 rounded-xl p-4">
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${annonce.type === "perdu" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
-                  {annonce.type === "perdu" ? "Perdu" : "Trouve"}
-                </span>
-                <p className="font-medium mt-2">{annonce.titre}</p>
-                <p className="text-sm text-gray-500 mt-1">{annonce.lieu} - {annonce.date}</p>
-              </div>
-            ))
-          )}
+
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-sm font-medium text-gray-500 uppercase">
+            {annonces.length} annonces recentes
+          </h3>
+          <div className="flex gap-2">
+            <button onClick={() => setVueActive("liste")} className={`px-4 py-2 text-sm rounded-lg ${vueActive === "liste" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-500"}`}>
+              Liste
+            </button>
+            <button onClick={() => setVueActive("carte")} className={`px-4 py-2 text-sm rounded-lg ${vueActive === "carte" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-500"}`}>
+              Carte
+            </button>
+          </div>
         </div>
+
+        {vueActive === "carte" ? (
+          <Carte annonces={annonces} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {annonces.length === 0 ? (
+              <p className="text-gray-400 text-sm col-span-2 text-center py-8">
+                Aucune annonce pour l instant. Soyez le premier a signaler !
+              </p>
+            ) : (
+              annonces.map((annonce) => (
+                <div key={annonce.id} className="bg-white border border-gray-200 rounded-xl p-4">
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${annonce.type === "perdu" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
+                    {annonce.type === "perdu" ? "Perdu" : "Trouve"}
+                  </span>
+                  <p className="font-medium mt-2">{annonce.titre}</p>
+                  <p className="text-sm text-gray-500 mt-1">{annonce.lieu} - {annonce.date}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
       </div>
 
     </main>
