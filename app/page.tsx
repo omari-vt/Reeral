@@ -15,6 +15,9 @@ export default function Home() {
   const [description, setDescription] = useState("")
   const [utilisateur, setUtilisateur] = useState<any>(null)
   const [vueActive, setVueActive] = useState<"liste" | "carte">("liste")
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     chargerAnnonces()
@@ -39,18 +42,45 @@ export default function Home() {
     if (data) setAnnonces(data)
   }
 
+  function choisirPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhoto(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
   async function publierAnnonce() {
     if (!titre || !lieu) return
+    setUploading(true)
+
+    let photoUrl = null
+
+    if (photo) {
+      const formData = new FormData()
+      formData.append("file", photo)
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+      photoUrl = data.url
+    }
+
     await supabase.from("annonces").insert({
       type: typeAnnonce,
       titre: titre,
       lieu: lieu,
       date: "a l instant",
+      photo_url: photoUrl,
     })
+
     setTitre("")
     setLieu("")
     setDescription("")
+    setPhoto(null)
+    setPhotoPreview(null)
     setFormulaireOuvert(false)
+    setUploading(false)
     chargerAnnonces()
   }
 
@@ -122,8 +152,26 @@ export default function Home() {
               <input type="text" placeholder="Titre de l objet (ex: Telephone Samsung)" value={titre} onChange={(e) => setTitre(e.target.value)} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 text-gray-900 bg-white" />
               <input type="text" placeholder="Lieu (ex: Marche Sandaga, Dakar)" value={lieu} onChange={(e) => setLieu(e.target.value)} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 text-gray-900 bg-white" />
               <textarea placeholder="Description (couleur, marque, details...)" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 resize-none text-gray-900 bg-white" />
-              <button onClick={publierAnnonce} className="bg-green-600 text-white py-2 rounded-lg text-sm font-medium">
-                Publier l annonce
+
+              <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center">
+                {photoPreview ? (
+                  <div className="relative">
+                    <img src={photoPreview} alt="preview" className="w-full h-40 object-cover rounded-lg" />
+                    <button onClick={() => { setPhoto(null); setPhotoPreview(null) }} className="absolute top-2 right-2 bg-white text-gray-500 rounded-full w-6 h-6 text-xs font-bold border border-gray-200">
+                      X
+                    </button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer">
+                    <p className="text-sm text-gray-400 mb-2">Ajouter une photo (optionnel)</p>
+                    <p className="text-xs text-green-600 font-medium">Choisir une image</p>
+                    <input type="file" accept="image/*" onChange={choisirPhoto} className="hidden" />
+                  </label>
+                )}
+              </div>
+
+              <button onClick={publierAnnonce} disabled={uploading} className="bg-green-600 text-white py-2 rounded-lg text-sm font-medium">
+                {uploading ? "Publication en cours..." : "Publier l annonce"}
               </button>
             </div>
           </div>
@@ -156,12 +204,17 @@ export default function Home() {
               </p>
             ) : (
               annonces.map((annonce) => (
-                <div key={annonce.id} className="bg-white border border-gray-200 rounded-xl p-4">
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${annonce.type === "perdu" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
-                    {annonce.type === "perdu" ? "Perdu" : "Trouve"}
-                  </span>
-                  <p className="font-medium mt-2">{annonce.titre}</p>
-                  <p className="text-sm text-gray-500 mt-1">{annonce.lieu} - {annonce.date}</p>
+                <div key={annonce.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  {annonce.photo_url && (
+                    <img src={annonce.photo_url} alt={annonce.titre} className="w-full h-40 object-cover" />
+                  )}
+                  <div className="p-4">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${annonce.type === "perdu" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
+                      {annonce.type === "perdu" ? "Perdu" : "Trouve"}
+                    </span>
+                    <p className="font-medium mt-2">{annonce.titre}</p>
+                    <p className="text-sm text-gray-500 mt-1">{annonce.lieu} - {annonce.date}</p>
+                  </div>
                 </div>
               ))
             )}
