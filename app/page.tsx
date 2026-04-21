@@ -6,12 +6,38 @@ import dynamic from "next/dynamic"
 
 const Carte = dynamic(() => import("./Carte"), { ssr: false })
 
+const QUARTIERS = [
+  { nom: "Plateau, Dakar", lat: 14.6937, lng: -17.4441 },
+  { nom: "Medina, Dakar", lat: 14.6953, lng: -17.4537 },
+  { nom: "Yoff, Dakar", lat: 14.7645, lng: -17.4906 },
+  { nom: "Ngor, Dakar", lat: 14.7557, lng: -17.5139 },
+  { nom: "Almadies, Dakar", lat: 14.7454, lng: -17.5227 },
+  { nom: "Ouakam, Dakar", lat: 14.7277, lng: -17.4990 },
+  { nom: "Mermoz, Dakar", lat: 14.7150, lng: -17.4782 },
+  { nom: "Sacre Coeur, Dakar", lat: 14.7200, lng: -17.4700 },
+  { nom: "Fann, Dakar", lat: 14.6990, lng: -17.4680 },
+  { nom: "Point E, Dakar", lat: 14.7050, lng: -17.4590 },
+  { nom: "Liberte, Dakar", lat: 14.7100, lng: -17.4550 },
+  { nom: "Grand Dakar", lat: 14.7000, lng: -17.4400 },
+  { nom: "Parcelles Assainies", lat: 14.7800, lng: -17.4200 },
+  { nom: "Pikine", lat: 14.7500, lng: -17.3900 },
+  { nom: "Guediawaye", lat: 14.7800, lng: -17.3700 },
+  { nom: "Rufisque", lat: 14.7156, lng: -17.2736 },
+  { nom: "Thiaroye", lat: 14.7300, lng: -17.3600 },
+  { nom: "Marche Sandaga", lat: 14.6887, lng: -17.4382 },
+  { nom: "Marche Kermel", lat: 14.6820, lng: -17.4390 },
+  { nom: "Gare Routiere Pompiers", lat: 14.6950, lng: -17.4470 },
+  { nom: "Aeroport LSS", lat: 14.7397, lng: -17.4902 },
+  { nom: "UCAD, Dakar", lat: 14.6925, lng: -17.4631 },
+  { nom: "Sea Plaza, Dakar", lat: 14.6780, lng: -17.4650 },
+]
+
 export default function Home() {
   const [annonces, setAnnonces] = useState<any[]>([])
   const [formulaireOuvert, setFormulaireOuvert] = useState(false)
   const [typeAnnonce, setTypeAnnonce] = useState("perdu")
   const [titre, setTitre] = useState("")
-  const [lieu, setLieu] = useState("")
+  const [quartier, setQuartier] = useState(QUARTIERS[0])
   const [description, setDescription] = useState("")
   const [utilisateur, setUtilisateur] = useState<any>(null)
   const [vueActive, setVueActive] = useState<"liste" | "carte">("liste")
@@ -49,19 +75,20 @@ export default function Home() {
     setPhotoPreview(URL.createObjectURL(file))
   }
 
+  function choisirQuartier(e: React.ChangeEvent<HTMLSelectElement>) {
+    const q = QUARTIERS.find(q => q.nom === e.target.value)
+    if (q) setQuartier(q)
+  }
+
   async function publierAnnonce() {
-    if (!titre || !lieu) return
+    if (!titre || !quartier) return
     setUploading(true)
 
     let photoUrl = null
-
     if (photo) {
       const formData = new FormData()
       formData.append("file", photo)
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      })
+      const res = await fetch("/api/upload", { method: "POST", body: formData })
       const data = await res.json()
       photoUrl = data.url
     }
@@ -69,13 +96,14 @@ export default function Home() {
     await supabase.from("annonces").insert({
       type: typeAnnonce,
       titre: titre,
-      lieu: lieu,
+      lieu: quartier.nom,
       date: "a l instant",
       photo_url: photoUrl,
+      latitude: quartier.lat,
+      longitude: quartier.lng,
     })
 
     setTitre("")
-    setLieu("")
     setDescription("")
     setPhoto(null)
     setPhotoPreview(null)
@@ -93,6 +121,9 @@ export default function Home() {
           {utilisateur ? (
             <>
               <span className="text-sm text-gray-500">{utilisateur.email}</span>
+              <a href="/messages" className="px-4 py-2 text-sm border border-green-200 text-green-600 rounded-lg hover:bg-green-50">
+                Messages
+              </a>
               <button onClick={seDeconnecter} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
                 Deconnexion
               </button>
@@ -150,7 +181,11 @@ export default function Home() {
 
             <div className="flex flex-col gap-3">
               <input type="text" placeholder="Titre de l objet (ex: Telephone Samsung)" value={titre} onChange={(e) => setTitre(e.target.value)} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 text-gray-900 bg-white" />
-              <input type="text" placeholder="Lieu (ex: Marche Sandaga, Dakar)" value={lieu} onChange={(e) => setLieu(e.target.value)} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 text-gray-900 bg-white" />
+              <select onChange={choisirQuartier} value={quartier.nom} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 text-gray-900 bg-white">
+                {QUARTIERS.map((q) => (
+                  <option key={q.nom} value={q.nom}>{q.nom}</option>
+                ))}
+              </select>
               <textarea placeholder="Description (couleur, marque, details...)" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-green-400 resize-none text-gray-900 bg-white" />
 
               <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center">
@@ -179,7 +214,6 @@ export default function Home() {
       )}
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-medium text-gray-500 uppercase">
             {annonces.length} annonces recentes
@@ -214,13 +248,15 @@ export default function Home() {
                     </span>
                     <p className="font-medium mt-2">{annonce.titre}</p>
                     <p className="text-sm text-gray-500 mt-1">{annonce.lieu} - {annonce.date}</p>
+                    <a href={`/messages?annonce=${annonce.id}&titre=${encodeURIComponent(annonce.titre)}`} className="mt-3 block text-center bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700">
+                      Contacter
+                    </a>
                   </div>
                 </div>
               ))
             )}
           </div>
         )}
-
       </div>
 
     </main>
