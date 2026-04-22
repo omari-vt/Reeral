@@ -46,6 +46,8 @@ export default function Home() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [menuOuvert, setMenuOuvert] = useState(false)
+  const [recherche, setRecherche] = useState("")
+  const [filtre, setFiltre] = useState<"tous" | "perdu" | "trouve" | "resolu">("tous")
 
   useEffect(() => {
     chargerAnnonces()
@@ -80,6 +82,17 @@ export default function Home() {
     if (data) setAnnonces(data)
   }
 
+  async function marquerResolu(id: number) {
+    await supabase.from("annonces").update({ statut: "resolu" }).eq("id", id)
+    chargerAnnonces()
+  }
+
+  function partagerWhatsApp(annonce: any) {
+    const texte = `REERAL — ${annonce.type === "perdu" ? "Objet perdu" : "Objet trouve"}: ${annonce.titre} a ${annonce.lieu}. Voir sur REERAL !`
+    const url = `https://wa.me/?text=${encodeURIComponent(texte)}`
+    window.open(url, "_blank")
+  }
+
   function choisirPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -95,7 +108,6 @@ export default function Home() {
   async function publierAnnonce() {
     if (!titre || !quartier) return
     setUploading(true)
-
     let photoUrl = null
     if (photo) {
       const formData = new FormData()
@@ -104,7 +116,6 @@ export default function Home() {
       const data = await res.json()
       photoUrl = data.url
     }
-
     await supabase.from("annonces").insert({
       type: typeAnnonce,
       titre: titre,
@@ -113,8 +124,8 @@ export default function Home() {
       photo_url: photoUrl,
       latitude: quartier.lat,
       longitude: quartier.lng,
+      statut: "actif",
     })
-
     setTitre("")
     setDescription("")
     setPhoto(null)
@@ -127,6 +138,15 @@ export default function Home() {
   const nomAffiche = nomProfil || utilisateur?.email?.split("@")[0] || ""
   const initiale = nomAffiche.charAt(0).toUpperCase()
 
+  const annoncesFiltrees = annonces.filter((a) => {
+    const matchRecherche = a.titre?.toLowerCase().includes(recherche.toLowerCase()) ||
+      a.lieu?.toLowerCase().includes(recherche.toLowerCase())
+    const matchFiltre = filtre === "tous" ? true :
+      filtre === "resolu" ? a.statut === "resolu" :
+      a.type === filtre && a.statut !== "resolu"
+    return matchRecherche && matchFiltre
+  })
+
   return (
     <main className="min-h-screen bg-gray-50">
 
@@ -135,17 +155,11 @@ export default function Home() {
         <div className="flex gap-3 items-center">
           {utilisateur ? (
             <div className="relative">
-              <button
-                onClick={() => setMenuOuvert(!menuOuvert)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition"
-              >
-                <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold">
-                  {initiale}
-                </div>
+              <button onClick={() => setMenuOuvert(!menuOuvert)} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition">
+                <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold">{initiale}</div>
                 <span className="text-sm font-medium text-gray-800">{nomAffiche}</span>
                 <span className="text-gray-400 text-xs">▼</span>
               </button>
-
               {menuOuvert && (
                 <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-100">
@@ -164,24 +178,27 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <a href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                Connexion
-              </a>
-              <a href="/login" className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                Inscription
-              </a>
+              <a href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Connexion</a>
+              <a href="/login" className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Inscription</a>
             </>
           )}
         </div>
       </nav>
 
       <div className="bg-green-600 text-white text-center py-14 px-6">
-        <h2 className="text-3xl font-bold mb-3">
-          Retrouvez vos objets perdus au Senegal
-        </h2>
-        <p className="text-green-100 text-base mb-8">
-          La plateforme communautaire de reference
-        </p>
+        <h2 className="text-3xl font-bold mb-3">Retrouvez vos objets perdus au Senegal</h2>
+        <p className="text-green-100 text-base mb-6">La plateforme communautaire de reference</p>
+
+        <div className="max-w-lg mx-auto mb-6">
+          <input
+            type="text"
+            placeholder="Rechercher un objet, un quartier..."
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            className="w-full px-5 py-3 rounded-xl text-gray-900 text-sm outline-none shadow"
+          />
+        </div>
+
         <div className="flex gap-4 justify-center">
           <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="px-8 py-3 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition">
             J ai perdu un objet
@@ -199,60 +216,42 @@ export default function Home() {
               <h2 className="text-lg font-bold text-gray-900">
                 {typeAnnonce === "perdu" ? "Signaler un objet perdu" : "Signaler un objet trouve"}
               </h2>
-              <button onClick={() => setFormulaireOuvert(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 font-bold text-sm">
-                X
-              </button>
+              <button onClick={() => setFormulaireOuvert(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 font-bold text-sm">X</button>
             </div>
-
             <div className="flex gap-2 mb-5">
-              <button onClick={() => setTypeAnnonce("perdu")} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${typeAnnonce === "perdu" ? "bg-red-100 text-red-700 border border-red-300" : "border border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
-                Perdu
-              </button>
-              <button onClick={() => setTypeAnnonce("trouve")} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouve" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
-                Trouve
-              </button>
+              <button onClick={() => setTypeAnnonce("perdu")} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${typeAnnonce === "perdu" ? "bg-red-100 text-red-700 border border-red-300" : "border border-gray-200 text-gray-500 hover:bg-gray-50"}`}>Perdu</button>
+              <button onClick={() => setTypeAnnonce("trouve")} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouve" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500 hover:bg-gray-50"}`}>Trouve</button>
             </div>
-
             <div className="flex flex-col gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Titre de l objet</label>
-                <input type="text" placeholder="Ex: Telephone Samsung Galaxy A54" value={titre} onChange={(e) => setTitre(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-200" />
+                <input type="text" placeholder="Ex: Telephone Samsung Galaxy A54" value={titre} onChange={(e) => setTitre(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500" />
               </div>
-
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Quartier</label>
                 <select onChange={choisirQuartier} value={quartier.nom} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500">
-                  {QUARTIERS.map((q) => (
-                    <option key={q.nom} value={q.nom}>{q.nom}</option>
-                  ))}
+                  {QUARTIERS.map((q) => (<option key={q.nom} value={q.nom}>{q.nom}</option>))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
                 <textarea placeholder="Couleur, marque, signes particuliers..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500 resize-none" />
               </div>
-
               <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center bg-gray-50">
                 {photoPreview ? (
                   <div className="relative">
                     <img src={photoPreview} alt="preview" className="w-full h-40 object-cover rounded-lg" />
-                    <button onClick={() => { setPhoto(null); setPhotoPreview(null) }} className="absolute top-2 right-2 bg-white text-gray-600 rounded-full w-7 h-7 text-xs font-bold border border-gray-200 shadow">
-                      X
-                    </button>
+                    <button onClick={() => { setPhoto(null); setPhotoPreview(null) }} className="absolute top-2 right-2 bg-white text-gray-600 rounded-full w-7 h-7 text-xs font-bold border border-gray-200 shadow">X</button>
                   </div>
                 ) : (
                   <label className="cursor-pointer">
                     <p className="text-sm font-medium text-gray-500 mb-1">Ajouter une photo</p>
                     <p className="text-xs text-gray-400 mb-2">optionnel — JPG, PNG</p>
-                    <span className="inline-block px-4 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg">
-                      Choisir une image
-                    </span>
+                    <span className="inline-block px-4 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg">Choisir une image</span>
                     <input type="file" accept="image/*" onChange={choisirPhoto} className="hidden" />
                   </label>
                 )}
               </div>
-
               <button onClick={publierAnnonce} disabled={uploading} className="bg-green-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-green-700 transition disabled:opacity-60">
                 {uploading ? "Publication en cours..." : "Publier l annonce"}
               </button>
@@ -262,44 +261,66 @@ export default function Home() {
       )}
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-5">
-          <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wide">
-            {annonces.length} annonces recentes
-          </h3>
+
+        <div className="flex flex-wrap gap-2 mb-5">
+          {["tous", "perdu", "trouve", "resolu"].map((f) => (
+            <button key={f} onClick={() => setFiltre(f as any)} className={`px-4 py-1.5 text-sm font-medium rounded-full transition ${filtre === f ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              {f === "tous" ? "Tous" : f === "perdu" ? "Perdus" : f === "trouve" ? "Trouves" : "Resolus"}
+            </button>
+          ))}
+          <span className="ml-auto text-sm font-bold text-gray-500 self-center">
+            {annoncesFiltrees.length} annonce{annoncesFiltrees.length > 1 ? "s" : ""}
+          </span>
           <div className="flex gap-2">
-            <button onClick={() => setVueActive("liste")} className={`px-4 py-2 text-sm font-medium rounded-lg transition ${vueActive === "liste" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-              Liste
-            </button>
-            <button onClick={() => setVueActive("carte")} className={`px-4 py-2 text-sm font-medium rounded-lg transition ${vueActive === "carte" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-              Carte
-            </button>
+            <button onClick={() => setVueActive("liste")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${vueActive === "liste" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>Liste</button>
+            <button onClick={() => setVueActive("carte")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${vueActive === "carte" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>Carte</button>
           </div>
         </div>
 
         {vueActive === "carte" ? (
-          <Carte annonces={annonces} />
+          <Carte annonces={annoncesFiltrees} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {annonces.length === 0 ? (
+            {annoncesFiltrees.length === 0 ? (
               <p className="text-gray-400 text-sm col-span-2 text-center py-12">
-                Aucune annonce pour l instant. Soyez le premier a signaler !
+                {recherche ? `Aucun resultat pour "${recherche}"` : "Aucune annonce pour l instant."}
               </p>
             ) : (
-              annonces.map((annonce) => (
-                <div key={annonce.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+              annoncesFiltrees.map((annonce) => (
+                <div key={annonce.id} className={`bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition ${annonce.statut === "resolu" ? "border-green-200 opacity-75" : "border-gray-200"}`}>
                   {annonce.photo_url && (
                     <img src={annonce.photo_url} alt={annonce.titre} className="w-full h-44 object-cover" />
                   )}
                   <div className="p-4">
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${annonce.type === "perdu" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-                      {annonce.type === "perdu" ? "Perdu" : "Trouve"}
-                    </span>
-                    <p className="font-bold text-gray-900 mt-2 text-base">{annonce.titre}</p>
+                    <div className="flex gap-2 flex-wrap mb-2">
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${annonce.type === "perdu" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                        {annonce.type === "perdu" ? "Perdu" : "Trouve"}
+                      </span>
+                      {annonce.statut === "resolu" && (
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                          Resolu
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-bold text-gray-900 text-base">{annonce.titre}</p>
                     <p className="text-sm text-gray-500 mt-1">{annonce.lieu}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{annonce.date}</p>
-                    <a href={`/messages?annonce=${annonce.id}&titre=${encodeURIComponent(annonce.titre)}`} className="mt-3 block text-center bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
-                      Contacter
-                    </a>
+
+                    <div className="flex gap-2 mt-3">
+                      {annonce.statut !== "resolu" && (
+                        <a href={`/messages?annonce=${annonce.id}&titre=${encodeURIComponent(annonce.titre)}`} className="flex-1 text-center bg-green-600 text-white py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
+                          Contacter
+                        </a>
+                      )}
+                      <button onClick={() => partagerWhatsApp(annonce)} className="px-3 py-2 rounded-xl border border-gray-200 text-green-600 hover:bg-green-50 transition text-sm font-medium">
+                        WhatsApp
+                      </button>
+                      {utilisateur && annonce.statut !== "resolu" && (
+                        <button onClick={() => marquerResolu(annonce.id)} className="px-3 py-2 rounded-xl border border-gray-200 text-blue-600 hover:bg-blue-50 transition text-sm font-medium">
+                          Resolu
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
