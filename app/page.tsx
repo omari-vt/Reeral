@@ -193,7 +193,6 @@ export default function Home() {
                   </span>
                 )}
               </a>
-
               <div className="relative">
                 <button onClick={() => setMenuOuvert(!menuOuvert)} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition">
                   <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold">{initiale}</div>
@@ -233,7 +232,13 @@ export default function Home() {
         <h2 className="text-3xl font-bold mb-3">Retrouvez vos objets perdus au Senegal</h2>
         <p className="text-green-100 text-base mb-6">La plateforme communautaire de reference</p>
         <div className="max-w-lg mx-auto mb-6">
-          <input type="text" placeholder="Rechercher un objet, un quartier..." value={recherche} onChange={(e) => setRecherche(e.target.value)} className="w-full px-5 py-3 rounded-xl text-gray-900 text-sm outline-none shadow" />
+          <input
+            type="text"
+            placeholder="Rechercher un objet, un quartier..."
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            className="w-full px-5 py-3 rounded-xl text-gray-900 text-sm outline-none shadow bg-white placeholder-gray-400"
+          />
         </div>
         <div className="flex gap-4 justify-center">
           <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="px-8 py-3 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition">J ai perdu un objet</button>
