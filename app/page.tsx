@@ -177,9 +177,10 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
 
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm">
-        <h1 className="text-xl font-bold text-green-600 tracking-tight">REERAL</h1>
-        <div className="flex gap-3 items-center">
+      {/* NAVBAR */}
+      <nav className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm sticky top-0 z-40">
+        <h1 className="text-lg font-bold text-green-600 tracking-tight">REERAL</h1>
+        <div className="flex gap-2 items-center">
           {utilisateur ? (
             <>
               <a href="/messages" className="relative p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition">
@@ -194,9 +195,9 @@ export default function Home() {
                 )}
               </a>
               <div className="relative">
-                <button onClick={() => setMenuOuvert(!menuOuvert)} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition">
+                <button onClick={() => setMenuOuvert(!menuOuvert)} className="flex items-center gap-2 px-2 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition">
                   <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold">{initiale}</div>
-                  <span className="text-sm font-medium text-gray-800">{nomAffiche}</span>
+                  <span className="text-sm font-medium text-gray-800 hidden sm:block">{nomAffiche}</span>
                   <span className="text-gray-400 text-xs">▼</span>
                 </button>
                 {menuOuvert && (
@@ -221,56 +222,62 @@ export default function Home() {
             </>
           ) : (
             <>
-              <a href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Connexion</a>
-              <a href="/login" className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Inscription</a>
+              <a href="/login" className="px-3 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Connexion</a>
+              <a href="/login" className="px-3 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Inscription</a>
             </>
           )}
         </div>
       </nav>
 
-      <div className="bg-green-600 text-white text-center py-14 px-6">
-        <h2 className="text-3xl font-bold mb-3">Retrouvez vos objets perdus au Senegal</h2>
-        <p className="text-green-100 text-base mb-6">La plateforme communautaire de reference</p>
-        <div className="max-w-lg mx-auto mb-6">
+      {/* HERO */}
+      <div className="bg-green-600 text-white text-center py-10 px-4">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-2">Retrouvez vos objets perdus au Senegal</h2>
+        <p className="text-green-100 text-sm sm:text-base mb-5">La plateforme communautaire de reference</p>
+        <div className="max-w-lg mx-auto mb-5">
           <input
             type="text"
             placeholder="Rechercher un objet, un quartier..."
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
-            className="w-full px-5 py-3 rounded-xl text-gray-900 text-sm outline-none shadow bg-white placeholder-gray-400"
+            className="w-full px-4 py-3 rounded-xl text-gray-900 text-sm outline-none shadow bg-white placeholder-gray-400"
           />
         </div>
-        <div className="flex gap-4 justify-center">
-          <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="px-8 py-3 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition">J ai perdu un objet</button>
-          <button onClick={() => { setTypeAnnonce("trouve"); setFormulaireOuvert(true) }} className="px-8 py-3 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition">J ai trouve un objet</button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center px-2">
+          <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition text-base">
+            J ai perdu un objet
+          </button>
+          <button onClick={() => { setTypeAnnonce("trouve"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition text-base">
+            J ai trouve un objet
+          </button>
         </div>
       </div>
 
+      {/* FORMULAIRE */}
       {formulaireOuvert && (
-        <div className="max-w-lg mx-auto mt-8 px-6">
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-bold text-gray-900">{typeAnnonce === "perdu" ? "Signaler un objet perdu" : "Signaler un objet trouve"}</h2>
-              <button onClick={() => setFormulaireOuvert(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 font-bold text-sm">X</button>
+        <div className="mx-auto mt-6 px-4 max-w-lg">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-bold text-gray-900">{typeAnnonce === "perdu" ? "Signaler un objet perdu" : "Signaler un objet trouve"}</h2>
+              <button onClick={() => setFormulaireOuvert(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 font-bold text-sm">X</button>
             </div>
-            <div className="flex gap-2 mb-5">
-              <button onClick={() => setTypeAnnonce("perdu")} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${typeAnnonce === "perdu" ? "bg-red-100 text-red-700 border border-red-300" : "border border-gray-200 text-gray-500 hover:bg-gray-50"}`}>Perdu</button>
-              <button onClick={() => setTypeAnnonce("trouve")} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouve" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500 hover:bg-gray-50"}`}>Trouve</button>
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setTypeAnnonce("perdu")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "perdu" ? "bg-red-100 text-red-700 border border-red-300" : "border border-gray-200 text-gray-500"}`}>Perdu</button>
+              <button onClick={() => setTypeAnnonce("trouve")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouve" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500"}`}>Trouve</button>
             </div>
             <div className="flex flex-col gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Titre de l objet</label>
-                <input type="text" placeholder="Ex: Telephone Samsung Galaxy A54" value={titre} onChange={(e) => setTitre(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500" />
+                <input type="text" placeholder="Ex: Telephone Samsung Galaxy A54" value={titre} onChange={(e) => setTitre(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-900 bg-white outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Quartier</label>
-                <select onChange={choisirQuartier} value={quartier.nom} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500">
+                <select onChange={choisirQuartier} value={quartier.nom} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-900 bg-white outline-none focus:border-green-500">
                   {QUARTIERS.map((q) => (<option key={q.nom} value={q.nom}>{q.nom}</option>))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
-                <textarea placeholder="Couleur, marque, signes particuliers..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500 resize-none" />
+                <textarea placeholder="Couleur, marque, signes particuliers..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-900 bg-white outline-none focus:border-green-500 resize-none" />
               </div>
               <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center bg-gray-50">
                 {photoPreview ? (
@@ -282,12 +289,12 @@ export default function Home() {
                   <label className="cursor-pointer">
                     <p className="text-sm font-medium text-gray-500 mb-1">Ajouter une photo</p>
                     <p className="text-xs text-gray-400 mb-2">optionnel — JPG, PNG</p>
-                    <span className="inline-block px-4 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg">Choisir une image</span>
+                    <span className="inline-block px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg">Choisir une image</span>
                     <input type="file" accept="image/*" onChange={choisirPhoto} className="hidden" />
                   </label>
                 )}
               </div>
-              <button onClick={publierAnnonce} disabled={uploading} className="bg-green-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-green-700 transition disabled:opacity-60">
+              <button onClick={publierAnnonce} disabled={uploading} className="bg-green-600 text-white py-3.5 rounded-xl text-sm font-bold hover:bg-green-700 transition disabled:opacity-60">
                 {uploading ? "Publication en cours..." : "Publier l annonce"}
               </button>
             </div>
@@ -295,33 +302,35 @@ export default function Home() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="flex flex-wrap gap-2 mb-5">
+      {/* ANNONCES */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+
+        <div className="flex flex-wrap gap-2 mb-4">
           {["tous", "perdu", "trouve", "resolu"].map((f) => (
-            <button key={f} onClick={() => setFiltre(f as any)} className={`px-4 py-1.5 text-sm font-medium rounded-full transition ${filtre === f ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+            <button key={f} onClick={() => setFiltre(f as any)} className={`px-3 py-1.5 text-xs font-medium rounded-full transition ${filtre === f ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600"}`}>
               {f === "tous" ? "Tous" : f === "perdu" ? "Perdus" : f === "trouve" ? "Trouves" : "Resolus"}
             </button>
           ))}
-          <span className="ml-auto text-sm font-bold text-gray-500 self-center">{annoncesFiltrees.length} annonce{annoncesFiltrees.length > 1 ? "s" : ""}</span>
+          <span className="ml-auto text-xs font-bold text-gray-500 self-center">{annoncesFiltrees.length} annonce{annoncesFiltrees.length > 1 ? "s" : ""}</span>
           <div className="flex gap-2">
-            <button onClick={() => setVueActive("liste")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${vueActive === "liste" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>Liste</button>
-            <button onClick={() => setVueActive("carte")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${vueActive === "carte" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>Carte</button>
+            <button onClick={() => setVueActive("liste")} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${vueActive === "liste" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600"}`}>Liste</button>
+            <button onClick={() => setVueActive("carte")} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${vueActive === "carte" ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600"}`}>Carte</button>
           </div>
         </div>
 
         {vueActive === "carte" ? (
           <Carte annonces={annoncesFiltrees} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {annoncesFiltrees.length === 0 ? (
               <p className="text-gray-400 text-sm col-span-2 text-center py-12">
                 {recherche ? `Aucun resultat pour "${recherche}"` : "Aucune annonce pour l instant."}
               </p>
             ) : (
               annoncesFiltrees.map((annonce) => (
-                <div key={annonce.id} className={`bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition ${annonce.statut === "resolu" ? "border-green-200 opacity-75" : "border-gray-200"}`}>
+                <div key={annonce.id} className={`bg-white border rounded-2xl overflow-hidden shadow-sm transition ${annonce.statut === "resolu" ? "border-green-200 opacity-75" : "border-gray-200"}`}>
                   {annonce.photo_url && (
-                    <img src={annonce.photo_url} alt={annonce.titre} className="w-full h-44 object-cover" />
+                    <img src={annonce.photo_url} alt={annonce.titre} className="w-full h-40 object-cover" />
                   )}
                   <div className="p-4">
                     <div className="flex gap-2 flex-wrap mb-2">
@@ -332,16 +341,16 @@ export default function Home() {
                         <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700">Resolu</span>
                       )}
                     </div>
-                    <p className="font-bold text-gray-900 text-base">{annonce.titre}</p>
-                    <p className="text-sm text-gray-500 mt-1">{annonce.lieu}</p>
+                    <p className="font-bold text-gray-900 text-sm">{annonce.titre}</p>
+                    <p className="text-xs text-gray-500 mt-1">{annonce.lieu}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{annonce.date}</p>
                     <div className="flex gap-2 mt-3">
                       {annonce.statut !== "resolu" && (
-                        <a href={`/messages?annonce=${annonce.id}&titre=${encodeURIComponent(annonce.titre)}`} className="flex-1 text-center bg-green-600 text-white py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition">Contacter</a>
+                        <a href={`/messages?annonce=${annonce.id}&titre=${encodeURIComponent(annonce.titre)}`} className="flex-1 text-center bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition">Contacter</a>
                       )}
-                      <button onClick={() => partagerWhatsApp(annonce)} className="px-3 py-2 rounded-xl border border-gray-200 text-green-600 hover:bg-green-50 transition text-sm font-medium">WhatsApp</button>
+                      <button onClick={() => partagerWhatsApp(annonce)} className="px-3 py-2.5 rounded-xl border border-gray-200 text-green-600 text-xs font-medium">WhatsApp</button>
                       {utilisateur && annonce.statut !== "resolu" && (
-                        <button onClick={() => marquerResolu(annonce.id)} className="px-3 py-2 rounded-xl border border-gray-200 text-blue-600 hover:bg-blue-50 transition text-sm font-medium">Resolu</button>
+                        <button onClick={() => marquerResolu(annonce.id)} className="px-3 py-2.5 rounded-xl border border-gray-200 text-blue-600 text-xs font-medium">Resolu</button>
                       )}
                     </div>
                   </div>
@@ -351,6 +360,37 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* BARRE DE NAVIGATION MOBILE EN BAS */}
+      {utilisateur && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-3 z-40 sm:hidden">
+          <button onClick={() => setVueActive("liste")} className={`flex flex-col items-center gap-1 ${vueActive === "liste" ? "text-green-600" : "text-gray-400"}`}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span className="text-xs font-medium">Annonces</span>
+          </button>
+          <button onClick={() => setVueActive("carte")} className={`flex flex-col items-center gap-1 ${vueActive === "carte" ? "text-green-600" : "text-gray-400"}`}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+            <span className="text-xs font-medium">Carte</span>
+          </button>
+          <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="flex flex-col items-center gap-1 text-gray-400">
+            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center -mt-5 shadow-lg">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <span className="text-xs font-medium text-green-600">Signaler</span>
+          </button>
+          <a href="/messages" className="flex flex-col items-center gap-1 text-gray-400 relative">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            {messagesNonLus > 0 && <span className="absolute -top-1 right-2 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{messagesNonLus}</span>}
+            <span className="text-xs font-medium">Messages</span>
+          </a>
+          <button onClick={() => setMenuOuvert(!menuOuvert)} className="flex flex-col items-center gap-1 text-gray-400">
+            <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold">{initiale}</div>
+            <span className="text-xs font-medium">Profil</span>
+          </button>
+        </div>
+      )}
+
+      {utilisateur && <div className="h-16 sm:hidden" />}
 
     </main>
   )
