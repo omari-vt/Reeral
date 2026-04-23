@@ -47,7 +47,7 @@ export default function Home() {
   const [uploading, setUploading] = useState(false)
   const [menuOuvert, setMenuOuvert] = useState(false)
   const [recherche, setRecherche] = useState("")
-  const [filtre, setFiltre] = useState<"tous" | "perdu" | "trouve" | "resolu">("tous")
+  const [filtre, setFiltre] = useState<"tous" | "perdu" | "trouves" | "resolu">("tous")
   const [messagesNonLus, setMessagesNonLus] = useState(0)
 
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function Home() {
   }
 
   function partagerWhatsApp(annonce: any) {
-    const texte = `REERAL — ${annonce.type === "perdu" ? "Objet perdu" : "Objet trouve"}: ${annonce.titre} a ${annonce.lieu}. Voir sur REERAL !`
+    const texte = `REERAL — ${annonce.type === "perdu" ? "Objet perdu" : "Objet trouves"}: ${annonce.titre} a ${annonce.lieu}. Voir sur REERAL !`
     const url = `https://wa.me/?text=${encodeURIComponent(texte)}`
     window.open(url, "_blank")
   }
@@ -247,7 +247,7 @@ export default function Home() {
             J ai perdu un objet
           </button>
           <button onClick={() => { setTypeAnnonce("trouve"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition text-base">
-            J ai trouve un objet
+            J ai trouves un objet
           </button>
         </div>
       </div>
@@ -262,7 +262,7 @@ export default function Home() {
             </div>
             <div className="flex gap-2 mb-4">
               <button onClick={() => setTypeAnnonce("perdu")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "perdu" ? "bg-red-100 text-red-700 border border-red-300" : "border border-gray-200 text-gray-500"}`}>Perdu</button>
-              <button onClick={() => setTypeAnnonce("trouve")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouve" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500"}`}>Trouve</button>
+              <button onClick={() => setTypeAnnonce("trouves")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouves" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500"}`}>Trouves</button>
             </div>
             <div className="flex flex-col gap-3">
               <div>
