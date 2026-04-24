@@ -7,6 +7,7 @@ export default function Login() {
   const [email, setEmail] = useState("")
   const [motDePasse, setMotDePasse] = useState("")
   const [nom, setNom] = useState("")
+  const [telephone, setTelephone] = useState("")
   const [mode, setMode] = useState<"connexion" | "inscription">("connexion")
   const [message, setMessage] = useState("")
   const [chargement, setChargement] = useState(false)
@@ -31,6 +32,7 @@ export default function Login() {
         await supabase.from("profils").insert({
           user_id: data.user.id,
           nom: nom,
+          telephone: telephone || null,
         })
         setMessage("Compte cree ! Tu peux maintenant te connecter.")
         setMode("connexion")
@@ -70,18 +72,42 @@ export default function Login() {
         <div className="flex flex-col gap-3">
 
           {mode === "inscription" && (
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">
-                Nom d utilisateur (visible par tous)
-              </label>
-              <input
-                type="text"
-                placeholder="Ex: Mamadou, Fatou, DialloDakar..."
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500"
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Nom d utilisateur (visible par tous)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Mamadou, Fatou, DialloDakar..."
+                  value={nom}
+                  onChange={(e) => setNom(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Numero WhatsApp
+                  <span className="text-gray-400 font-normal ml-1">(optionnel — pour etre contacte directement)</span>
+                </label>
+                <div className="flex gap-2">
+                  <span className="flex items-center px-3 bg-gray-100 border border-gray-300 rounded-xl text-sm text-gray-600 font-medium">
+                    +221
+                  </span>
+                  <input
+                    type="tel"
+                    placeholder="77 000 00 00"
+                    value={telephone}
+                    onChange={(e) => setTelephone("+221" + e.target.value.replace(/\D/g, ""))}
+                    className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 bg-white outline-none focus:border-green-500"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Si tu renseignes ton numero, les gens pourront te contacter directement sur WhatsApp
+                </p>
+              </div>
+            </>
           )}
 
           <div>

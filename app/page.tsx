@@ -41,14 +41,16 @@ export default function Home() {
   const [description, setDescription] = useState("")
   const [utilisateur, setUtilisateur] = useState<any>(null)
   const [nomProfil, setNomProfil] = useState("")
+  const [telephoneProfil, setTelephoneProfil] = useState("")
   const [vueActive, setVueActive] = useState<"liste" | "carte">("liste")
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [menuOuvert, setMenuOuvert] = useState(false)
   const [recherche, setRecherche] = useState("")
-  const [filtre, setFiltre] = useState<"tous" | "perdu" | "trouves" | "resolu">("tous")
+  const [filtre, setFiltre] = useState<"tous" | "perdu" | "trouve" | "resolu">("tous")
   const [messagesNonLus, setMessagesNonLus] = useState(0)
+  const [annonceContact, setAnnonceContact] = useState<any>(null)
 
   useEffect(() => {
     chargerAnnonces()
@@ -61,10 +63,13 @@ export default function Home() {
       setUtilisateur(data.user)
       const { data: profil } = await supabase
         .from("profils")
-        .select("nom")
+        .select("nom, telephone")
         .eq("user_id", data.user.id)
         .single()
-      if (profil) setNomProfil(profil.nom)
+      if (profil) {
+        setNomProfil(profil.nom)
+        setTelephoneProfil(profil.telephone || "")
+      }
       chargerMessagesNonLus(data.user.email!)
       ecouterNotifications(data.user.email!)
     }
@@ -97,6 +102,7 @@ export default function Home() {
     await supabase.auth.signOut()
     setUtilisateur(null)
     setNomProfil("")
+    setTelephoneProfil("")
     setMenuOuvert(false)
     setMessagesNonLus(0)
   }
@@ -114,9 +120,24 @@ export default function Home() {
     chargerAnnonces()
   }
 
-  function partagerWhatsApp(annonce: any) {
-    const texte = `REERAL — ${annonce.type === "perdu" ? "Objet perdu" : "Objet trouves"}: ${annonce.titre} a ${annonce.lieu}. Voir sur REERAL !`
-    const url = `https://wa.me/?text=${encodeURIComponent(texte)}`
+  async function ouvrirContact(annonce: any) {
+    if (!utilisateur) {
+      window.location.href = "/login"
+      return
+    }
+    const { data: profil } = await supabase
+      .from("profils")
+      .select("telephone, nom")
+      .eq("user_id", annonce.user_id)
+      .single()
+    setAnnonceContact({ ...annonce, telephone_publieur: profil?.telephone || null, nom_publieur: profil?.nom || "Utilisateur" })
+  }
+
+  function contacterWhatsAppDirect(annonce: any) {
+    if (!annonce.telephone_publieur) return
+    const tel = annonce.telephone_publieur.replace(/\s/g, "")
+    const texte = `Bonjour, je vous contacte depuis REERAL concernant votre annonce : "${annonce.titre}" a ${annonce.lieu}.`
+    const url = `https://wa.me/${tel}?text=${encodeURIComponent(texte)}`
     window.open(url, "_blank")
   }
 
@@ -133,6 +154,10 @@ export default function Home() {
   }
 
   async function publierAnnonce() {
+    if (!utilisateur) {
+      window.location.href = "/login"
+      return
+    }
     if (!titre || !quartier) return
     setUploading(true)
     let photoUrl = null
@@ -152,6 +177,7 @@ export default function Home() {
       latitude: quartier.lat,
       longitude: quartier.lng,
       statut: "actif",
+      user_id: utilisateur.id,
     })
     setTitre("")
     setDescription("")
@@ -176,6 +202,41 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+
+      {/* MODAL CONTACT */}
+      {annonceContact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-bold text-gray-900">Contacter le publieur</h2>
+              <button onClick={() => setAnnonceContact(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 font-bold text-sm">X</button>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">Annonce : <span className="font-semibold text-gray-900">{annonceContact.titre}</span></p>
+            <p className="text-xs text-gray-400 mb-5">Publie par : {annonceContact.nom_publieur}</p>
+
+            <div className="flex flex-col gap-3">
+              
+                href={`/messages?annonce=${annonceContact.id}&titre=${encodeURIComponent(annonceContact.titre)}`}
+                className="w-full text-center bg-green-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-green-700 transition"
+              >
+                Envoyer un message sur REERAL
+              </a>
+
+              {annonceContact.telephone_publieur ? (
+                <button
+                  onClick={() => contacterWhatsAppDirect(annonceContact)}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-green-500 text-green-700 py-3 rounded-xl text-sm font-semibold hover:bg-green-50 transition"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.886 0C5.318 0 0 5.318 0 11.886c0 2.094.546 4.061 1.5 5.765L0 24l6.545-1.469A11.84 11.84 0 0 0 11.886 23.77c6.568 0 11.886-5.318 11.886-11.884C23.772 5.318 18.454 0 11.886 0zm0 21.77a9.84 9.84 0 0 1-5.031-1.38l-.36-.214-3.733.838.852-3.633-.235-.374a9.84 9.84 0 0 1-1.509-5.234c0-5.44 4.426-9.866 9.866-9.866 5.44 0 9.866 4.426 9.866 9.866 0 5.44-4.426 9.866-9.866 9.866z"/></svg>
+                  Contacter sur WhatsApp
+                </button>
+              ) : (
+                <p className="text-xs text-center text-gray-400">Le publieur n a pas renseigne son WhatsApp</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NAVBAR */}
       <nav className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm sticky top-0 z-40">
@@ -243,13 +304,24 @@ export default function Home() {
           />
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center px-2">
-          <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition text-base">
+          <button onClick={() => {
+            if (!utilisateur) { window.location.href = "/login"; return }
+            setTypeAnnonce("perdu")
+            setFormulaireOuvert(true)
+          }} className="w-full sm:w-auto px-6 py-3.5 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition text-base">
             J ai perdu un objet
           </button>
-          <button onClick={() => { setTypeAnnonce("trouve"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition text-base">
-            J ai trouves un objet
+          <button onClick={() => {
+            if (!utilisateur) { window.location.href = "/login"; return }
+            setTypeAnnonce("trouve")
+            setFormulaireOuvert(true)
+          }} className="w-full sm:w-auto px-6 py-3.5 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition text-base">
+            J ai trouve un objet
           </button>
         </div>
+        {!utilisateur && (
+          <p className="text-green-200 text-xs mt-3">Connecte-toi pour publier une annonce</p>
+        )}
       </div>
 
       {/* FORMULAIRE */}
@@ -262,7 +334,7 @@ export default function Home() {
             </div>
             <div className="flex gap-2 mb-4">
               <button onClick={() => setTypeAnnonce("perdu")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "perdu" ? "bg-red-100 text-red-700 border border-red-300" : "border border-gray-200 text-gray-500"}`}>Perdu</button>
-              <button onClick={() => setTypeAnnonce("trouves")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouves" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500"}`}>Trouves</button>
+              <button onClick={() => setTypeAnnonce("trouve")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${typeAnnonce === "trouve" ? "bg-green-100 text-green-700 border border-green-300" : "border border-gray-200 text-gray-500"}`}>Trouve</button>
             </div>
             <div className="flex flex-col gap-3">
               <div>
@@ -304,7 +376,6 @@ export default function Home() {
 
       {/* ANNONCES */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-
         <div className="flex flex-wrap gap-2 mb-4">
           {["tous", "perdu", "trouve", "resolu"].map((f) => (
             <button key={f} onClick={() => setFiltre(f as any)} className={`px-3 py-1.5 text-xs font-medium rounded-full transition ${filtre === f ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600"}`}>
@@ -346,9 +417,10 @@ export default function Home() {
                     <p className="text-xs text-gray-400 mt-0.5">{annonce.date}</p>
                     <div className="flex gap-2 mt-3">
                       {annonce.statut !== "resolu" && (
-                        <a href={`/messages?annonce=${annonce.id}&titre=${encodeURIComponent(annonce.titre)}`} className="flex-1 text-center bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition">Contacter</a>
+                        <button onClick={() => ouvrirContact(annonce)} className="flex-1 text-center bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
+                          Contacter
+                        </button>
                       )}
-                      <button onClick={() => partagerWhatsApp(annonce)} className="px-3 py-2.5 rounded-xl border border-gray-200 text-green-600 text-xs font-medium">WhatsApp</button>
                       {utilisateur && annonce.statut !== "resolu" && (
                         <button onClick={() => marquerResolu(annonce.id)} className="px-3 py-2.5 rounded-xl border border-gray-200 text-blue-600 text-xs font-medium">Resolu</button>
                       )}
@@ -361,7 +433,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* BARRE DE NAVIGATION MOBILE EN BAS */}
+      {/* BARRE MOBILE BAS */}
       {utilisateur && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-3 z-40 sm:hidden">
           <button onClick={() => setVueActive("liste")} className={`flex flex-col items-center gap-1 ${vueActive === "liste" ? "text-green-600" : "text-gray-400"}`}>
@@ -372,7 +444,11 @@ export default function Home() {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
             <span className="text-xs font-medium">Carte</span>
           </button>
-          <button onClick={() => { setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="flex flex-col items-center gap-1 text-gray-400">
+          <button onClick={() => {
+            if (!utilisateur) { window.location.href = "/login"; return }
+            setTypeAnnonce("perdu")
+            setFormulaireOuvert(true)
+          }} className="flex flex-col items-center gap-1 text-gray-400">
             <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center -mt-5 shadow-lg">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
             </div>
