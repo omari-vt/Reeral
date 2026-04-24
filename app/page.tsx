@@ -130,7 +130,11 @@ export default function Home() {
       .select("telephone, nom")
       .eq("user_id", annonce.user_id)
       .single()
-    setAnnonceContact({ ...annonce, telephone_publieur: profil?.telephone || null, nom_publieur: profil?.nom || "Utilisateur" })
+    setAnnonceContact({
+      ...annonce,
+      telephone_publieur: profil?.telephone || null,
+      nom_publieur: profil?.nom || "Utilisateur"
+    })
   }
 
   function contacterWhatsAppDirect(annonce: any) {
@@ -213,20 +217,12 @@ export default function Home() {
             </div>
             <p className="text-sm text-gray-600 mb-1">Annonce : <span className="font-semibold text-gray-900">{annonceContact.titre}</span></p>
             <p className="text-xs text-gray-400 mb-5">Publie par : {annonceContact.nom_publieur}</p>
-
             <div className="flex flex-col gap-3">
-              
-                href={`/messages?annonce=${annonceContact.id}&titre=${encodeURIComponent(annonceContact.titre)}`}
-                className="w-full text-center bg-green-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-green-700 transition"
-              >
+              <a href={`/messages?annonce=${annonceContact.id}&titre=${encodeURIComponent(annonceContact.titre)}`} className="w-full text-center bg-green-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
                 Envoyer un message sur REERAL
               </a>
-
               {annonceContact.telephone_publieur ? (
-                <button
-                  onClick={() => contacterWhatsAppDirect(annonceContact)}
-                  className="w-full flex items-center justify-center gap-2 border-2 border-green-500 text-green-700 py-3 rounded-xl text-sm font-semibold hover:bg-green-50 transition"
-                >
+                <button onClick={() => contacterWhatsAppDirect(annonceContact)} className="w-full flex items-center justify-center gap-2 border-2 border-green-500 text-green-700 py-3 rounded-xl text-sm font-semibold hover:bg-green-50 transition">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.886 0C5.318 0 0 5.318 0 11.886c0 2.094.546 4.061 1.5 5.765L0 24l6.545-1.469A11.84 11.84 0 0 0 11.886 23.77c6.568 0 11.886-5.318 11.886-11.884C23.772 5.318 18.454 0 11.886 0zm0 21.77a9.84 9.84 0 0 1-5.031-1.38l-.36-.214-3.733.838.852-3.633-.235-.374a9.84 9.84 0 0 1-1.509-5.234c0-5.44 4.426-9.866 9.866-9.866 5.44 0 9.866 4.426 9.866 9.866 0 5.44-4.426 9.866-9.866 9.866z"/></svg>
                   Contacter sur WhatsApp
                 </button>
@@ -295,33 +291,17 @@ export default function Home() {
         <h2 className="text-2xl sm:text-3xl font-bold mb-2">Retrouvez vos objets perdus au Senegal</h2>
         <p className="text-green-100 text-sm sm:text-base mb-5">La plateforme communautaire de reference</p>
         <div className="max-w-lg mx-auto mb-5">
-          <input
-            type="text"
-            placeholder="Rechercher un objet, un quartier..."
-            value={recherche}
-            onChange={(e) => setRecherche(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl text-gray-900 text-sm outline-none shadow bg-white placeholder-gray-400"
-          />
+          <input type="text" placeholder="Rechercher un objet, un quartier..." value={recherche} onChange={(e) => setRecherche(e.target.value)} className="w-full px-4 py-3 rounded-xl text-gray-900 text-sm outline-none shadow bg-white placeholder-gray-400" />
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center px-2">
-          <button onClick={() => {
-            if (!utilisateur) { window.location.href = "/login"; return }
-            setTypeAnnonce("perdu")
-            setFormulaireOuvert(true)
-          }} className="w-full sm:w-auto px-6 py-3.5 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition text-base">
+          <button onClick={() => { if (!utilisateur) { window.location.href = "/login"; return } setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 bg-white text-green-700 font-semibold rounded-xl shadow hover:shadow-md transition text-base">
             J ai perdu un objet
           </button>
-          <button onClick={() => {
-            if (!utilisateur) { window.location.href = "/login"; return }
-            setTypeAnnonce("trouve")
-            setFormulaireOuvert(true)
-          }} className="w-full sm:w-auto px-6 py-3.5 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition text-base">
+          <button onClick={() => { if (!utilisateur) { window.location.href = "/login"; return } setTypeAnnonce("trouve"); setFormulaireOuvert(true) }} className="w-full sm:w-auto px-6 py-3.5 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-700 transition text-base">
             J ai trouve un objet
           </button>
         </div>
-        {!utilisateur && (
-          <p className="text-green-200 text-xs mt-3">Connecte-toi pour publier une annonce</p>
-        )}
+        {!utilisateur && <p className="text-green-200 text-xs mt-3">Connecte-toi pour publier une annonce</p>}
       </div>
 
       {/* FORMULAIRE */}
@@ -417,9 +397,7 @@ export default function Home() {
                     <p className="text-xs text-gray-400 mt-0.5">{annonce.date}</p>
                     <div className="flex gap-2 mt-3">
                       {annonce.statut !== "resolu" && (
-                        <button onClick={() => ouvrirContact(annonce)} className="flex-1 text-center bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
-                          Contacter
-                        </button>
+                        <button onClick={() => ouvrirContact(annonce)} className="flex-1 text-center bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition">Contacter</button>
                       )}
                       {utilisateur && annonce.statut !== "resolu" && (
                         <button onClick={() => marquerResolu(annonce.id)} className="px-3 py-2.5 rounded-xl border border-gray-200 text-blue-600 text-xs font-medium">Resolu</button>
@@ -444,11 +422,7 @@ export default function Home() {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
             <span className="text-xs font-medium">Carte</span>
           </button>
-          <button onClick={() => {
-            if (!utilisateur) { window.location.href = "/login"; return }
-            setTypeAnnonce("perdu")
-            setFormulaireOuvert(true)
-          }} className="flex flex-col items-center gap-1 text-gray-400">
+          <button onClick={() => { if (!utilisateur) { window.location.href = "/login"; return } setTypeAnnonce("perdu"); setFormulaireOuvert(true) }} className="flex flex-col items-center gap-1 text-gray-400">
             <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center -mt-5 shadow-lg">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
             </div>
